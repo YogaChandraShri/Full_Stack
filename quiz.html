@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz Web Application</title>
+
+    <!-- jQuery CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <style>* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Segoe UI", Tahoma, sans-serif;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Main Card */
+.container {
+    width: 520px;
+    background: #ffffff;
+    padding: 35px;
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+    text-align: center;
+    animation: fadeIn 0.6s ease;
+}
+
+/* Headings */
+.container h2 {
+    color: #333;
+    margin-bottom: 12px;
+    font-size: 26px;
+}
+
+.container p {
+    color: #666;
+    margin-bottom: 20px;
+    font-size: 15px;
+}
+
+/* Question */
+#question {
+    font-size: 18px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 18px;
+    text-align: left;
+}
+
+/* Options */
+.options label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #f6f7fb;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.options label:hover {
+    background: #eef1ff;
+    border-color: #667eea;
+}
+
+.options input[type="radio"] {
+    accent-color: #667eea;
+    cursor: pointer;
+}
+
+/* Buttons */
+button {
+    padding: 10px 22px;
+    border: none;
+    border-radius: 25px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+/* Primary Button */
+#startQuiz,
+#next,
+#restart {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+#startQuiz:hover,
+#next:hover,
+#restart:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+/* Secondary Button */
+#prev {
+    background: #e4e6eb;
+    color: #333;
+}
+
+#prev:hover {
+    background: #d4d6db;
+}
+
+/* Button group */
+.buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+}
+
+/* Result Text */
+#score {
+    font-size: 20px;
+    font-weight: bold;
+    color: #667eea;
+    margin-top: 15px;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+    </style>
+</head>
+<body>
+
+<!-- FRONT PAGE -->
+<div class="container" id="frontPage">
+    <h2>Welcome to KCET LEARNING QUIZ APP</h2>
+    <p>Test your knowledge on Web & jQuery concepts</p>
+    <button id="startQuiz">Start Quiz</button>
+</div>
+
+<!-- QUIZ PAGE -->
+<div class="container" id="quizPage" style="display:none;">
+    <h2>Quiz</h2>
+
+    <p id="question"></p>
+
+    <div class="options">
+        <label><input type="radio" name="option" value="0"> <span id="opt0"></span></label>
+        <label><input type="radio" name="option" value="1"> <span id="opt1"></span></label>
+        <label><input type="radio" name="option" value="2"> <span id="opt2"></span></label>
+        <label><input type="radio" name="option" value="3"> <span id="opt3"></span></label>
+    </div>
+
+    <div class="buttons">
+        <button id="prev">Previous</button>
+        <button id="next">Next</button>
+    </div>
+</div>
+
+<!-- RESULT PAGE -->
+<div class="container" id="resultPage" style="display:none;">
+    <h2>Quiz Completed</h2>
+    <p id="score"></p>
+    <button id="restart">Restart Quiz</button>
+</div>
+
+<script>
+$(document).ready(function () {
+
+    const questions = [
+        { q: "Which language is mainly used to structure web pages?", options: ["CSS","HTML","JavaScript","PHP"], answer: 1 },
+        { q: "Which library is used for DOM manipulation?", options: ["Angular","React","jQuery","Bootstrap"], answer: 2 },
+        { q: "Which symbol is used for ID selector in jQuery?", options: [".","#","*","&"], answer: 1 },
+        { q: "Which function runs after page load?", options: ["onload()","ready()","start()","init()"], answer: 1 },
+        { q: "Which jQuery method hides elements?", options: ["delete()","remove()","hide()","fade()"], answer: 2 },
+        { q: "Which event occurs on mouse click?", options: ["hover","dblclick","click","keypress"], answer: 2 },
+        { q: "Which method changes HTML content?", options: ["text()","html()","css()","val()"], answer: 1 },
+        { q: "Which method adds a CSS class?", options: ["setClass()","addStyle()","addClass()","cssClass()"], answer: 2 },
+        { q: "Which tag includes jQuery?", options: ["<style>","<script>","<link>","<meta>"], answer: 1 },
+        { q: "Which effect changes opacity?", options: ["hide()","fadeIn()","toggle()","slideUp()"], answer: 1 }
+    ];
+
+    let current = 0;
+    let selectedAnswers = [];
+    let score = 0;
+
+    function loadQuestion() {
+        $("#question").text(questions[current].q);
+        for (let i = 0; i < 4; i++) {
+            $("#opt" + i).text(questions[current].options[i]);
+        }
+        $("input[name='option']").prop("checked", false);
+
+        if (selectedAnswers[current] !== undefined) {
+            $("input[value='" + selectedAnswers[current] + "']").prop("checked", true);
+        }
+    }
+
+    // Start button
+    $("#startQuiz").click(function () {
+        $("#frontPage").hide();
+        $("#quizPage").show();
+        loadQuestion();
+    });
+
+    $("#next").click(function () {
+        let selected = $("input[name='option']:checked").val();
+        if (selected === undefined) {
+            alert("Please select an option");
+            return;
+        }
+
+        selectedAnswers[current] = parseInt(selected);
+
+        if (current < questions.length - 1) {
+            current++;
+            loadQuestion();
+        } else {
+            calculateScore();
+            $("#quizPage").hide();
+            $("#resultPage").show();
+        }
+    });
+
+    $("#prev").click(function () {
+        if (current > 0) {
+            current--;
+            loadQuestion();
+        }
+    });
+
+    function calculateScore() {
+        score = 0;
+        for (let i = 0; i < questions.length; i++) {
+            if (selectedAnswers[i] === questions[i].answer) {
+                score++;
+            }
+        }
+        $("#score").text("Your Score: " + score + " / " + questions.length);
+    }
+
+    $("#restart").click(function () {
+        current = 0;
+        score = 0;
+        selectedAnswers = [];
+        $("#resultPage").hide();
+        $("#frontPage").show();
+    });
+
+});
+</script>
+
+</body>
+</html>
