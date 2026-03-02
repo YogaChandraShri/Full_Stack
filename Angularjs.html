@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html ng-app="taskApp">
+<head>
+    <meta charset="UTF-8">
+    <title>TaskMaster Hub - Todo List</title>
+
+    <!-- AngularJS CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial;
+            width: 400px;
+            margin: 40px auto;
+        }
+
+        h2 {
+            text-align: center;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            margin: 8px 0;
+        }
+
+        .completed-true {
+            text-decoration: line-through;
+            color: gray;
+        }
+
+        button {
+            margin-left: 5px;
+        }
+
+        .filter-btn {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+
+<body ng-controller="TodoController">
+
+    <h2>My Todo List</h2>
+
+    <p>
+        {{remaining()}} of {{schedule.length}} remaining
+    </p>
+
+    <!-- Filter Buttons -->
+    <button class="filter-btn" ng-click="statusFilter=''">All</button>
+    <button class="filter-btn" ng-click="statusFilter={completed:false}">Pending</button>
+    <button class="filter-btn" ng-click="statusFilter={completed:true}">Completed</button>
+
+    <ul>
+        <li ng-repeat="todo in schedule | filter:statusFilter">
+
+            <input type="checkbox" ng-model="todo.completed">
+
+            <span ng-class="'completed-' + todo.completed">
+                <span ng-hide="todo.editing">{{todo.work}}</span>
+                <input type="text" ng-show="todo.editing" ng-model="todo.work">
+            </span>
+
+            <button ng-click="editTodo(todo)">
+                {{todo.editing ? 'Save' : 'Edit'}}
+            </button>
+
+            <button ng-click="deleteTodo($index)">Delete</button>
+
+        </li>
+    </ul>
+
+    <br>
+
+    <input type="text"
+           ng-model="todoWork"
+           placeholder="Add new task here">
+
+    <button ng-click="addNew()">Add</button>
+
+
+    <script>
+        var app = angular.module("taskApp", []);
+
+        app.controller("TodoController", function ($scope) {
+
+            // Initial tasks
+            $scope.schedule = [
+                { work: "Todo #1", completed: false },
+                { work: "Todo #2", completed: false },
+                { work: "Todo #3", completed: false }
+            ];
+
+            // Count remaining tasks
+            $scope.remaining = function () {
+                var count = 0;
+                angular.forEach($scope.schedule, function (todo) {
+                    if (!todo.completed) count++;
+                });
+                return count;
+            };
+
+            // Add new task
+            $scope.addNew = function () {
+                if ($scope.todoWork) {
+                    $scope.schedule.push({
+                        work: $scope.todoWork,
+                        completed: false
+                    });
+                    $scope.todoWork = "";
+                }
+            };
+
+            // Delete task
+            $scope.deleteTodo = function (index) {
+                $scope.schedule.splice(index, 1);
+            };
+
+            // Edit / Save task
+            $scope.editTodo = function (todo) {
+                todo.editing = !todo.editing;
+            };
+
+        });
+    </script>
+
+</body>
+</html>
